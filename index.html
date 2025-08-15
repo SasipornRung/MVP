@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PropDecoded • PoC</title>
 
-<!-- Leaflet (แผนที่) -->
+<!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Chart.js (ใช้ในเลนส์รีโนเวท/ดีเวลอป) -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <style>
   :root{
     --green:#2E7D5B; --green-100:#E9F6F0; --green-300:#BFE3D2;
-    --teal:#1F6F63; --yellow:#F5E29E; --ink:#12333A; --muted:#6A7D80;
-    --card:#ffffff; --shadow:0 8px 24px rgba(0,0,0,.08);
+    --teal:#1F6F63; --yellow:#F5E29E; --ink:#12333A; --muted:#4B5B5F;
+    --card:#ffffff; --border:#E5EFE9; --shadow:0 8px 24px rgba(0,0,0,.08);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -29,62 +29,66 @@
   .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--teal));display:grid;place-items:center;color:#fff;box-shadow:var(--shadow)}
   h1{margin:8px 0 12px}
 
-  /* เมนูด่วน */
+  /* Quick menu */
   .quick-grid{display:grid;gap:14px;grid-template-columns:1fr 1fr}
   @media(min-width:900px){.quick-grid{grid-template-columns:repeat(4,1fr)}}
   .qcard{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:18px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;border:none}
-  .qicon{width:36px;height:36px;border-radius:10px;background:var(--green-300);display:grid;place-items:center;font-weight:900;color:var(--teal)}
-  .qtitle{font-weight:800}.hint{color:var(--muted);font-size:13px;margin-top:2px}
+  .qicon{width:36px;height:36px;border-radius:10px;background:var(--green-300);display:grid;place-items:center;font-weight:900;color:#1F6F63}
+  .qtitle{font-weight:800}
+  .hint{color:#6A7D80;font-size:13px;margin-top:2px}
 
-  /* สวิทช์เลนส์ */
+  /* Lens switch */
   .lens-bar{margin:18px 0 12px;display:flex;gap:8px;flex-wrap:wrap}
   .seg{border:2px solid var(--green);border-radius:999px;padding:4px;display:inline-flex;gap:6px;background:#fff;box-shadow:var(--shadow)}
   .seg button{all:unset;padding:8px 14px;border-radius:999px;color:var(--green);font-weight:700;cursor:pointer}
-  .seg button.active{background:linear-gradient(180deg,var(--green-300),#fff);color:var(--ink);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
+  .seg button.active{background:linear-gradient(180deg,#D6EFE3,#fff);color:var(--ink);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
 
-  /* เลย์เอาต์หลัก */
+  /* Main layout */
   .main{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:start}
   @media(max-width:920px){.main{grid-template-columns:1fr}}
 
-  /* แผนที่ */
+  /* Map (left default) */
   #map{height:56vh;min-height:320px;border-radius:16px;box-shadow:var(--shadow)}
 
-  /* การ์ด insight (คอลขวา) */
+  /* Right pane */
   .insight{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:16px 16px 10px}
-  .badge{display:inline-block;background:var(--green-300);color:var(--teal);padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;margin-right:6px}
+  .badge{display:inline-block;background:#BFE3D2;color:#1F6F63;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;margin-right:6px}
   .meter{height:10px;background:#ECF2F3;border-radius:999px;overflow:hidden}
   .meter>span{display:block;height:100%;background:linear-gradient(90deg,#CFEBDD,var(--yellow));width:40%}
   .kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
-  .kpi .card{background:#fff;border:1.5px solid #E5EFE9;border-radius:14px;padding:12px}
+  .kpi .card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:12px}
   .kpi h4{margin:0 0 6px}
-  .muted{color:var(--muted)} .btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;border:none;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
-  details{background:#FAFCFB;border:1.5px solid #E5EFE9;border-radius:12px;padding:10px 12px;margin:6px 0}
+  .muted{color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;border:none;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
+  details{background:#FAFCFB;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;margin:6px 0}
   summary{cursor:pointer;font-weight:700}
 
-  /* ================= RENOVATOR DASHBOARD (คอลซ้าย) ================= */
+  /* ============== RENOVATOR DASHBOARD (LIGHT) ============== */
   #renovatorDash{display:none;height:56vh;min-height:320px}
-  .reno-wrap{height:100%;background:linear-gradient(180deg,#0b1220,#0f172a);color:#e5e7eb;border-radius:16px;box-shadow:var(--shadow);padding:16px;overflow:auto}
-  .reno-title{margin:0 0 10px;font-size:24px;font-weight:800;letter-spacing:.2px}
+  .reno-wrap{height:100%;background:#fff;color:var(--ink);border-radius:16px;box-shadow:var(--shadow);padding:16px;overflow:auto}
+  .reno-title{margin:0 0 10px;font-size:24px;font-weight:800;letter-spacing:.2px;color:var(--ink)}
   .reno-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:900px){.reno-grid{grid-template-columns:1fr}}
-  .reno-card{background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:14px}
+  .reno-card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px}
   .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 10px}
-  .kpiD{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px}
-  .kpiD .lab{font-size:12px;color:#9ca3af}.kpiD .val{font-size:22px;margin-top:2px}
-  .pos{color:#34d399}.neg{color:#f87171}
+  .kpiD{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px}
+  .kpiD .lab{font-size:12px;color:#4B5B5F}
+  .kpiD .val{font-size:22px;margin-top:2px;color:var(--ink)}
+  .pos{color:#2E7D5B}.neg{color:#d44a54}
   .canvas{height:260px}
-  .badge-green{display:inline-block;background:#065f46;color:#d1fae5;padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px;margin:8px 0}
+  .badge-green{display:inline-block;background:#BFE3D2;color:#1F6F63;padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px;margin:8px 0}
+
   /* Bench (range bars) */
   .range-wrap{font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans Thai';margin:8px 0}
-  .range-title{margin-bottom:6px;color:#e5e7eb;font-weight:700}
+  .range-title{margin-bottom:6px;color:#12333A;font-weight:700}
   .range-bar{position:relative;height:28px;border-radius:14px;overflow:hidden;
              background:linear-gradient(90deg,#2E7D5B 0%, #F5E29E 50%, #d44a54 100%);
-             box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
-  .range-frame{position:absolute;inset:0;border:2px solid rgba(255,255,255,.85);border-radius:14px;pointer-events:none}
-  .range-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
-  .range-tag{position:absolute;transform:translate(-50%,8px);background:#1f2937;color:#93c5fd;font-size:12px;padding:3px 8px;border-radius:999px;white-space:nowrap}
-  .range-labels{display:flex;justify-content:space-between;color:#9ca3af;font-size:12px;margin-top:4px}
-  .range-note{font-size:12px;color:#9ca3af;margin-top:4px}
+             box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+  .range-frame{position:absolute;inset:0;border:2px solid #fff;border-radius:14px;pointer-events:none}
+  .range-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .range-tag{position:absolute;transform:translate(-50%,8px);background:#eef2ff;color:#1e40af;font-size:12px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .range-labels{display:flex;justify-content:space-between;color:#4B5B5F;font-size:12px;margin-top:4px}
+  .range-note{font-size:12px;color:#4B5B5F;margin-top:4px}
 </style>
 </head>
 <body>
@@ -95,7 +99,7 @@
 
     <h1>ยินดีต้อนรับ</h1>
 
-    <!-- เมนูด่วน -->
+    <!-- Quick menu -->
     <section class="quick-grid" aria-label="เมนูด่วน">
       <button class="qcard" data-action="get-started">
         <div class="qicon">➤</div>
@@ -115,7 +119,7 @@
       </button>
     </section>
 
-    <!-- สวิทช์ 3 เลนส์ -->
+    <!-- Lens switch -->
     <section class="lens-bar">
       <div class="seg" role="tablist" aria-label="มุมมองข้อมูล">
         <button class="active" id="lens-tenant"   role="tab" aria-selected="true">ผู้เช่า</button>
@@ -124,18 +128,16 @@
       </div>
     </section>
 
-    <!-- เนื้อหาหลัก -->
+    <!-- Main -->
     <section class="main">
-      <!-- ฝั่งซ้าย: Map หรือ Renovator Dashboard -->
+      <!-- Left: Map or Renovator dashboard -->
       <div>
         <div id="map" aria-label="แผนที่"></div>
 
-        <!-- RENOVATOR DASHBOARD -->
         <div id="renovatorDash">
           <div class="reno-wrap">
             <h2 class="reno-title">Investor Portfolio</h2>
 
-            <!-- KPIs -->
             <div class="kpis">
               <div class="kpiD"><div class="lab">จำนวนนักลงทุน</div><div id="kpiI" class="val">–</div></div>
               <div class="kpiD"><div class="lab">จำนวนห้องชุดทั้งหมด</div><div id="kpiU" class="val">–</div></div>
@@ -143,7 +145,6 @@
             </div>
 
             <div class="reno-grid">
-              <!-- ซ้าย: Donut + Bench -->
               <div class="reno-card">
                 <h4 style="margin:0 0 8px">สัดส่วนจำนวนห้องราย (Donut)</h4>
                 <div class="canvas"><canvas id="donut"></canvas></div>
@@ -153,22 +154,21 @@
                 <div id="benchOwner"></div>
               </div>
 
-              <!-- ขวา: Vertical Bar -->
               <div class="reno-card">
                 <h4 style="margin:0 0 8px">กำไร/ขาดทุนสุทธิต่อราย (Bar)</h4>
                 <div class="canvas"><canvas id="barV"></canvas></div>
-                <div class="muted" style="color:#9ca3af;margin-top:6px">แท่งเขียว = กำไร • แท่งแดง = ขาดทุน</div>
+                <div class="muted" style="margin-top:6px">แท่งเขียว = กำไร • แท่งแดง = ขาดทุน</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ฝั่งขวา: Insight เดิม -->
+      <!-- Right: insight -->
       <aside class="insight">
         <span class="badge" id="lensTag">ผู้เช่า</span>
         <h3 id="areaTitle">วัฒนา</h3>
-        <div class="muted" id="subtitle">ภาพรวมสำหรับผู้อยู่อาศัย</div>
+        <div class="muted" id="subtitle">ภาพรวมสำหรับผู้อาศัย</div>
 
         <div style="margin:12px 0 6px;font-weight:800">ตัวชี้วัดหลัก</div>
         <div class="meter"><span id="meterFill" style="width:60%"></span></div>
@@ -188,73 +188,61 @@
   </div>
 
 <script>
-/* ---------- Map (เลนส์ผู้เช่า/นักลงทุน) ---------- */
+  /* ===== Map (tenant/investor) ===== */
 const map = L.map('map').setView([13.736717, 100.523186], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
-[[13.7307,100.5402,'Condo A'], [13.7425,100.5167,'Condo B'], [13.7253,100.5101,'Condo C']]
-  .forEach(([lat,lng,label]) => L.marker([lat,lng]).addTo(map).bindPopup(label));
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+[[13.7307,100.5402,'Condo A'],[13.7425,100.5167,'Condo B'],[13.7253,100.5101,'Condo C']]
+  .forEach(([lat,lng,label])=>L.marker([lat,lng]).addTo(map).bindPopup(label));
 
-/* ---------- Load JSON (สำหรับข้อความฝั่งขวา) ---------- */
+/* ===== JSON for right pane ===== */
 async function loadLens(lens){
-  const url = `./${lens}.json?v=${Date.now()}`;
-  const res = await fetch(url, {cache:'no-store'});
-  if(!res.ok) throw new Error('load json error: '+lens);
-  return res.json();
+  try{
+    const res = await fetch(`./${lens}.json?v=${Date.now()}`, {cache:'no-store'});
+    if(!res.ok) throw new Error('no json');
+    return await res.json();
+  }catch{ return {}; }
 }
 
-/* ---------- Elements ---------- */
-const lensBtns = {
-  tenant:   document.getElementById('lens-tenant'),
-  investor: document.getElementById('lens-investor'),
-  renovator:document.getElementById('lens-renovator')
-};
-const lensTag = document.getElementById('lensTag');
-const subtitle = document.getElementById('subtitle');
-const meterFill = document.getElementById('meterFill');
-const kpiLeftDesc = document.getElementById('kpiLeftDesc');
-const kpiRightTitle = document.getElementById('kpiRightTitle');
-const kpiRightDesc = document.getElementById('kpiRightDesc');
-const detailsText = document.getElementById('detailsText');
+/* ===== Elements ===== */
+const lensBtns={tenant:document.getElementById('lens-tenant'),investor:document.getElementById('lens-investor'),renovator:document.getElementById('lens-renovator')};
+const mapEl=document.getElementById('map'), reno=document.getElementById('renovatorDash');
+const lensTag=document.getElementById('lensTag'), subtitle=document.getElementById('subtitle'), meterFill=document.getElementById('meterFill');
+const kpiLeftDesc=document.getElementById('kpiLeftDesc'), kpiRightTitle=document.getElementById('kpiRightTitle'), kpiRightDesc=document.getElementById('kpiRightDesc'), detailsText=document.getElementById('detailsText');
 
-const mapEl = document.getElementById('map');
-const reno = document.getElementById('renovatorDash');
+/* ===== Helpers ===== */
+const fmt=n=>Number(n).toLocaleString('th-TH');
+const soft=i=>`hsl(${(i*137.508)%360} 70% 55%)`;
 
-/* ---------- Utils ---------- */
-const fmt = n => Number(n).toLocaleString('th-TH');
-const soft = i => `hsl(${(i*137.508)%360} 70% 55%)`;
-
-/* ---------- Bench renderer ---------- */
-function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
-function renderRange(mount, data){
-  mount.innerHTML = '';
-  if(!data || !(data.min>0) || !(data.max>data.min)) return;
-  const wrap = document.createElement('div'); wrap.className='range-wrap';
-  const t = document.createElement('div'); t.className='range-title'; t.textContent = data.title || 'ช่วงราคา';
-  const bar = document.createElement('div'); bar.className='range-bar';
+/* ===== Bench renderer ===== */
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function renderRange(mount,data){
+  mount.innerHTML=''; if(!data||!(data.min>0)||!(data.max>data.min)) return;
+  const wrap=document.createElement('div'); wrap.className='range-wrap';
+  const t=document.createElement('div'); t.className='range-title'; t.textContent=data.title||'ช่วงราคา';
+  const bar=document.createElement('div'); bar.className='range-bar';
   const frame=document.createElement('div'); frame.className='range-frame';
   const marker=document.createElement('div'); marker.className='range-marker';
   const tag=document.createElement('div'); tag.className='range-tag'; tag.textContent=`ราคาของคุณ: ${fmt(data.actual)} ${data.unit||''}`;
   const labels=document.createElement('div'); labels.className='range-labels';
-  labels.innerHTML = `<span>${fmt(data.min)}</span><span>${fmt(data.max)}</span>`;
+  labels.innerHTML=`<span>${fmt(data.min)}</span><span>${fmt(data.max)}</span>`;
   const note=document.createElement('div'); note.className='range-note';
   bar.appendChild(frame); bar.appendChild(marker); bar.appendChild(tag);
   wrap.appendChild(t); wrap.appendChild(bar); wrap.appendChild(labels); wrap.appendChild(note);
   mount.appendChild(wrap);
   function position(){
-    const rect = bar.getBoundingClientRect();
-    const a = clamp(data.actual ?? data.min, data.min, data.max);
-    const p = (a - data.min) / (data.max - data.min);
-    const x = p * rect.width;
-    marker.style.left = x + 'px'; tag.style.left = x + 'px';
+    const rect=bar.getBoundingClientRect();
+    const a=clamp(data.actual??data.min,data.min,data.max);
+    const p=(a-data.min)/(data.max-data.min); const x=p*rect.width;
+    marker.style.left=x+'px'; tag.style.left=x+'px';
     const mid=(data.min+data.max)/2, diff=((a-mid)/mid)*100;
-    const zone = p<.33 ? 'ช่วงล่าง' : (p>.67 ? 'ช่วงบน' : 'กลางช่วง');
-    note.innerHTML = `ตำแหน่ง: <b>${zone}</b> (ต่างจากค่ากลาง ~${diff.toFixed(1)}%)`;
+    const zone=p<.33?'ช่วงล่าง':(p>.67?'ช่วงบน':'กลางช่วง');
+    note.innerHTML=`ตำแหน่ง: <b>${zone}</b> (ต่างจากค่ากลาง ~${diff.toFixed(1)}%)`;
   }
-  position(); window.addEventListener('resize', position);
+  position(); window.addEventListener('resize',position);
 }
 
-/* ---------- Render Renovator dashboard ---------- */
-  let donutChart=null, barVChart=null;
+/* ===== Renovator dashboard ===== */
+let donutChart=null, barVChart=null;
 function renderRenovator(){
   const holdings=[
     {investor:'Alpha Fund',positions:[{pnl:15000},{pnl:-5000}]},
@@ -273,82 +261,22 @@ function renderRenovator(){
   kN.classList.toggle('pos',netTotal>=0); kN.classList.toggle('neg',netTotal<0);
 
   donutChart&&donutChart.destroy();
-  donutChart = new Chart(document.getElementById('donut'), {
-  type: 'doughnut',
-  data: { labels, datasets: [...] },
-  options: {
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#12333A', // ตัวหนังสือ legend เข้ม
-          font: { weight: 'bold' }
-        }
-      }
-    }
-  }
-});
-
-  barVChart&&barVChart.destroy();
- barVChart = new Chart(document.getElementById('barV'), {
-  type: 'bar',
-  data: { labels, datasets: [...] },
-  options: {
-    scales: {
-      y: {
-        ticks: { color: '#12333A' }, // ตัวเลขแกน Y
-        grid: { color: 'rgba(18,51,58,0.12)' }
-      },
-      x: {
-        ticks: { color: '#12333A' } // ตัวเลขแกน X
-      }
-    },
-    plugins: {
-      legend: {
-        labels: { color: '#12333A' }
-      }
-    }
-  }
-});
-
-  renderRange(document.getElementById('benchMarket'),{title:'ช่วงราคาตลาด (ยูนิตใกล้เคียง)',unit:'บาท/เดือน',min:18000,max:20000,actual:19000});
-  renderRange(document.getElementById('benchOwner'), {title:'ช่วงแนะนำ (Developer)',unit:'บาท/เดือน',min:18500,max:20500,actual:19800});
-}
-
-/* ---------- Apply lens ---------- */
-async function applyLens(lens){
-  localStorage.setItem('pd_lens',lens);
-  Object.entries(lensBtns).forEach(([id,btn])=>{
-    btn.classList.toggle('active',id===lens);
-    btn.setAttribute('aria-selected',id===lens?'true':'false');
+  donutChart=new Chart(document.getElementById('donut'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:unitCounts,backgroundColor:labels.map((_,i)=>soft(i)),borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{legend:{position:'bottom',labels:{color:'#12333A',font:{weight:'bold'}}},
+               tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} ห้อง`}}}}
   });
 
-  const isReno=(lens==='renovator');
-  mapEl.style.display=isReno?'none':'block';
-  reno.style.display=isReno?'block':'none';
-  if(isReno) renderRenovator();
-
-  try{
-    const c=await loadLens(lens);
-    lensTag.textContent=c.tag||''; subtitle.textContent=c.subtitle||'';
-    meterFill.style.width=Math.round((c.meter||0)*100)+'%';
-    kpiLeftDesc.textContent=c.kpiLeftDesc||''; kpiRightTitle.textContent=c.kpiRightTitle||'';
-    kpiRightDesc.textContent=c.kpiRightDesc||''; detailsText.innerHTML=c.detailsText||'';
-  }catch(e){/* ไม่มีไฟล์ json ก็ผ่านไป */}
-}
-
-/* Lens events */
-lensBtns.tenant.addEventListener('click',()=>applyLens('tenant'));
-lensBtns.investor.addEventListener('click',()=>applyLens('investor'));
-lensBtns.renovator.addEventListener('click',()=>applyLens('renovator'));
-
-/* Quick menu */
-document.querySelector('[data-action="get-started"]')?.addEventListener('click',()=>document.querySelector('.lens-bar')?.scrollIntoView({behavior:'smooth',block:'center'}));
-
-/* Init */
-applyLens(localStorage.getItem('pd_lens')||'tenant');
-</script>
-</body>
-</html>
-
+  barVChart&&barVChart.destroy();
+  barVChart=new Chart(document.getElementById('barV'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Net P/L (บาท)',data:profits,backgroundColor:profits.map(v=>v>=0?'#2E7D5B':'#d44a54')}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(18,51,58,0.12)'},ticks:{color:'#12333A',callback:v=>'฿'+fmt(v)}},
+        x:{grid:{display:false},ticks:{color:'#12333A'}}
+      },
+      plugins:{legend:{display:false}}
 
