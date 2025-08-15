@@ -254,93 +254,84 @@ function renderRange(mount, data){
 }
 
 /* ---------- Render Renovator dashboard ---------- */
-let donutChart=null, barVChart=null;
-function renderRenovator() {
-  // ข้อมูล mock แบบในเดโม่
-  const holdings = [
-    { investor:'Alpha Fund',  positions:[{pnl:15000},{pnl:-5000}] },
-    { investor:'Beta Capital',positions:[{pnl:8000},{pnl:3000},{pnl:-2000}] },
-    { investor:'Solo Investor',positions:[{pnl:12000}] },
-    { investor:'Gamma Trust', positions:[{pnl:4000},{pnl:2000}] },
+  let donutChart=null, barVChart=null;
+function renderRenovator(){
+  const holdings=[
+    {investor:'Alpha Fund',positions:[{pnl:15000},{pnl:-5000}]},
+    {investor:'Beta Capital',positions:[{pnl:8000},{pnl:3000},{pnl:-2000}]},
+    {investor:'Solo Investor',positions:[{pnl:12000}]},
+    {investor:'Gamma Trust',positions:[{pnl:4000},{pnl:2000}]},
   ];
-  const labels = holdings.map(h=>h.investor);
-  const unitCounts = holdings.map(h=>h.positions.length);
-  const profits = holdings.map(h=>h.positions.reduce((s,p)=>s+(Number(p.pnl)||0),0));
-  const netTotal = profits.reduce((s,n)=>s+n,0);
+  const labels=holdings.map(h=>h.investor);
+  const unitCounts=holdings.map(h=>h.positions.length);
+  const profits=holdings.map(h=>h.positions.reduce((s,p)=>s+(Number(p.pnl)||0),0));
+  const netTotal=profits.reduce((s,n)=>s+n,0);
 
-  // KPIs
-  document.getElementById('kpiI').textContent = fmt(holdings.length);
-  document.getElementById('kpiU').textContent = fmt(unitCounts.reduce((a,b)=>a+b,0));
-  const kN = document.getElementById('kpiN');
-  kN.textContent = (netTotal>=0?'+':'–')+'฿'+fmt(Math.abs(netTotal));
-  kN.classList.toggle('pos', netTotal>=0); kN.classList.toggle('neg', netTotal<0);
+  document.getElementById('kpiI').textContent=fmt(holdings.length);
+  document.getElementById('kpiU').textContent=fmt(unitCounts.reduce((a,b)=>a+b,0));
+  const kN=document.getElementById('kpiN'); kN.textContent=(netTotal>=0?'+':'–')+'฿'+fmt(Math.abs(netTotal));
+  kN.classList.toggle('pos',netTotal>=0); kN.classList.toggle('neg',netTotal<0);
 
-  // Donut
-  donutChart && donutChart.destroy();
-  donutChart = new Chart(document.getElementById('donut'),{
+  donutChart&&donutChart.destroy();
+  donutChart=new Chart(document.getElementById('donut'),{
     type:'doughnut',
-    data:{labels, datasets:[{data:unitCounts, backgroundColor:labels.map((_,i)=>soft(i)), borderColor:'#0b1220', borderWidth:2}]},
-    options:{responsive:true, maintainAspectRatio:false, cutout:'55%',
-      plugins:{legend:{position:'bottom', labels:{color:'#cbd5e1'}},
-        tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} ห้อง`}}}}
+    data:{labels,datasets:[{data:unitCounts,backgroundColor:labels.map((_,i)=>soft(i)),borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{legend:{position:'bottom',labels:{color:'#12333A',font:{weight:'bold'}}},
+               tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} ห้อง`}}}}
   });
 
-  // Vertical Bar
-  barVChart && barVChart.destroy();
-  barVChart = new Chart(document.getElementById('barV'),{
+  barVChart&&barVChart.destroy();
+  barVChart=new Chart(document.getElementById('barV'),{
     type:'bar',
-    data:{labels, datasets:[{data:profits, backgroundColor:profits.map(v=>v>=0?'#34d399':'#f87171'), label:'Net P/L (บาท)'}]},
-    options:{responsive:true, maintainAspectRatio:false,
-      scales:{y:{beginAtZero:true, grid:{color:'rgba(148,163,184,.18)'}, ticks:{color:'#cbd5e1', callback:v=>'฿'+fmt(v)}},
-              x:{grid:{display:false}, ticks:{color:'#cbd5e1'}}},
-      plugins:{legend:{display:false}}}
+    data:{labels,datasets:[{data:profits,backgroundColor:profits.map(v=>v>=0?'#2E7D5B':'#d44a54'),label:'Net P/L (บาท)'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(18,51,58,.12)'},ticks:{color:'#12333A',callback:v=>'฿'+fmt(v)}},
+        x:{grid:{display:false},ticks:{color:'#12333A'}}
+      },
+      plugins:{legend:{display:false}}
+    }
   });
 
-  // Benchmarks
-  renderRange(document.getElementById('benchMarket'), {title:'ช่วงราคาตลาด (ยูนิตใกล้เคียง)', unit:'บาท/เดือน', min:18000, max:20000, actual:19000});
-  renderRange(document.getElementById('benchOwner'),  {title:'ช่วงแนะนำ (Developer)',      unit:'บาท/เดือน', min:18500, max:20500, actual:19800});
+  renderRange(document.getElementById('benchMarket'),{title:'ช่วงราคาตลาด (ยูนิตใกล้เคียง)',unit:'บาท/เดือน',min:18000,max:20000,actual:19000});
+  renderRange(document.getElementById('benchOwner'), {title:'ช่วงแนะนำ (Developer)',unit:'บาท/เดือน',min:18500,max:20500,actual:19800});
 }
 
-/* ---------- Apply lens (สลับ Map/Dashboard + โหลดข้อความขวา) ---------- */
+/* ---------- Apply lens ---------- */
 async function applyLens(lens){
-  localStorage.setItem('pd_lens', lens);
+  localStorage.setItem('pd_lens',lens);
   Object.entries(lensBtns).forEach(([id,btn])=>{
-    btn.classList.toggle('active', id===lens);
-    btn.setAttribute('aria-selected', id===lens ? 'true' : 'false');
+    btn.classList.toggle('active',id===lens);
+    btn.setAttribute('aria-selected',id===lens?'true':'false');
   });
 
-  // ซ่อน/โชว์ Map vs Renovator Dashboard
-  const isReno = (lens==='renovator');
-  mapEl.style.display = isReno ? 'none' : 'block';
-  reno.style.display  = isReno ? 'block' : 'none';
-  if (isReno) renderRenovator();
+  const isReno=(lens==='renovator');
+  mapEl.style.display=isReno?'none':'block';
+  reno.style.display=isReno?'block':'none';
+  if(isReno) renderRenovator();
 
-  // อัปเดตข้อความ/คอนเทนต์ในการ์ดขวา
   try{
-    const c = await loadLens(lens);
-    lensTag.textContent = c.tag || '';
-    subtitle.textContent = c.subtitle || '';
-    meterFill.style.width = Math.round((c.meter||0)*100) + '%';
-    kpiLeftDesc.textContent = c.kpiLeftDesc || '';
-    kpiRightTitle.textContent = c.kpiRightTitle || '';
-    kpiRightDesc.textContent = c.kpiRightDesc || '';
-    detailsText.innerHTML = c.detailsText || '';
-  }catch(e){ /* ถ้าไม่มีไฟล์ json ก็ไม่เป็นไร */ }
+    const c=await loadLens(lens);
+    lensTag.textContent=c.tag||''; subtitle.textContent=c.subtitle||'';
+    meterFill.style.width=Math.round((c.meter||0)*100)+'%';
+    kpiLeftDesc.textContent=c.kpiLeftDesc||''; kpiRightTitle.textContent=c.kpiRightTitle||'';
+    kpiRightDesc.textContent=c.kpiRightDesc||''; detailsText.innerHTML=c.detailsText||'';
+  }catch(e){/* ไม่มีไฟล์ json ก็ผ่านไป */}
 }
 
-/* ปุ่มเลนส์ */
-lensBtns.tenant  .addEventListener('click', ()=>applyLens('tenant'));
-lensBtns.investor.addEventListener('click', ()=>applyLens('investor'));
-lensBtns.renovator.addEventListener('click', ()=>applyLens('renovator'));
+/* Lens events */
+lensBtns.tenant.addEventListener('click',()=>applyLens('tenant'));
+lensBtns.investor.addEventListener('click',()=>applyLens('investor'));
+lensBtns.renovator.addEventListener('click',()=>applyLens('renovator'));
 
-/* เมนูด่วน */
-const lensBar = document.querySelector('.lens-bar');
-document.querySelector('[data-action="get-started"]')
-  ?.addEventListener('click', ()=> lensBar?.scrollIntoView({behavior:'smooth', block:'center'}));
+/* Quick menu */
+document.querySelector('[data-action="get-started"]')?.addEventListener('click',()=>document.querySelector('.lens-bar')?.scrollIntoView({behavior:'smooth',block:'center'}));
 
-/* เริ่มต้น */
-applyLens(localStorage.getItem('pd_lens') || 'tenant');
+/* Init */
+applyLens(localStorage.getItem('pd_lens')||'tenant');
 </script>
 </body>
 </html>
+
 
