@@ -85,7 +85,7 @@
              background:linear-gradient(90deg,#2E7D5B 0%, #F5E29E 50%, #d44a54 100%);
              box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
   .range-frame{position:absolute;inset:0;border:2px solid #fff;border-radius:14px;pointer-events:none}
-  .range-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .range-marker{position:absolute;top:50%;transform:translate(-50%, -50%);width:12px;height:12px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
   .range-tag{position:absolute;transform:translate(-50%,8px);background:#eef2ff;color:#1e40af;font-size:12px;padding:3px 8px;border-radius:999px;white-space:nowrap}
   .range-labels{display:flex;justify-content:space-between;color:#4B5B5F;font-size:12px;margin-top:4px}
   .range-note{font-size:12px;color:#4B5B5F;margin-top:4px}
@@ -188,17 +188,25 @@
   </div>
 
 <script>
-  /* ===== Map (tenant/investor) ===== */
-const map = L.map('map').setView([13.736717, 100.523186], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
-[[13.7307,100.5402,'Condo A'],[13.7425,100.5167,'Condo B'],[13.7253,100.5101,'Condo C']]
-  .forEach(([lat,lng,label])=>L.marker([lat,lng]).addTo(map).bindPopup(label));
+/* ===== Map (tenant/investor) ===== */
+  (function initMap(){
+  try{
+    const m = L.map('map').setView([13.736717, 100.523186], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19, attribution:'&copy; OpenStreetMap'
+    }).addTo(m);
+    [[13.7307,100.5402,'Condo A'],[13.7425,100.5167,'Condo B'],[13.7253,100.5101,'Condo C']]
+      .forEach(([lat,lng,label])=>L.marker([lat,lng]).addTo(m).bindPopup(label));
+    // เก็บไว้กันลืมใช้ต่อ
+    window.__PD_MAP__ = m;
+  }catch(e){ console.error('Map init failed', e); }
+})();
 
 /* ===== JSON for right pane ===== */
 async function loadLens(lens){
   try{
     const res = await fetch(`./${lens}.json?v=${Date.now()}`, {cache:'no-store'});
-    if(!res.ok) throw new Error('no json');
+    if(!res.ok) throw 0;
     return await res.json();
   }catch{ return {}; }
 }
@@ -279,4 +287,50 @@ function renderRenovator(){
         x:{grid:{display:false},ticks:{color:'#12333A'}}
       },
       plugins:{legend:{display:false}}
+    }
+  });
+
+  renderRange(document.getElementById('benchMarket'),{title:'ช่วงราคาตลาด (ยูนิตใกล้เคียง)',unit:'บาท/เดือน',min:18000,max:20000,actual:19000});
+  renderRange(document.getElementById('benchOwner'), {title:'ช่วงแนะนำ (Developer)',unit:'บาท/เดือน',min:18500,max:20500,actual:19800});
+}
+
+/* ===== Apply lens ===== */
+async function applyLens(lens){
+  // toggle UI
+  Object.entries(lensBtns).forEach(([id,btn])=>{
+    btn.classList.toggle('active', id===lens);
+    btn.setAttribute('aria-selected', id===lens ? 'true' : 'false');
+  });
+  const isReno = (lens === 'renovator');
+  mapEl.style.display = isReno ? 'none' : 'block';
+  document.getElementById('renovatorDash').style.display = isReno ? 'block' : 'none';
+  if (isReno) renderRenovator();
+
+  // right pane (tolerant)
+  const c = await loadLens(lens);
+  lensTag.textContent   = c.tag || (lens==='renovator'?'รีโนเวท/ดีเวลอป':(lens==='investor'?'นักลงทุน':'ผู้เช่า'));
+  subtitle.textContent  = c.subtitle || (isReno ? 'แดชบอร์ดพอร์ตการลงทุน (เดโม่)' : 'ภาพรวมสำหรับผู้อาศัย');
+  meterFill.style.width = Math.round((c.meter ?? 0.6)*100) + '%';
+  kpiLeftDesc.textContent = c.kpiLeftDesc || 'CBD ~ 18 นาที • BTS ~ 6 นาที';
+  kpiRightTitle.textContent= c.kpiRightTitle || 'รีวิวล่าสุด';
+  kpiRightDesc.textContent = c.kpiRightDesc  || '“ย่านเงียบช่วงกลางคืน มีร้านสะดวกซื้อใกล้ ๆ”';
+  detailsText.innerHTML    = c.detailsText   || '• ตัวอย่างข้อความรายละเอียดจากไฟล์ JSON';
+
+  localStorage.setItem('pd_lens', lens);
+}
+
+/* ===== Wire lens buttons ===== */
+lensBtns.tenant?.addEventListener('click',()=>applyLens('tenant'));
+lensBtns.investor?.addEventListener('click',()=>applyLens('investor'));
+lensBtns.renovator?.addEventListener('click',()=>applyLens('renovator'));
+
+/* ===== Quick menu ===== */
+document.querySelector('[data-action="get-started"]')
+  ?.addEventListener('click', ()=> document.querySelector('.lens-bar')?.scrollIntoView({behavior:'smooth',block:'center'}));
+
+/* ===== Init ===== */
+applyLens(localStorage.getItem('pd_lens') || 'tenant');
+</script>
+</body>
+</html>
 
