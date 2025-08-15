@@ -273,26 +273,43 @@ function renderRenovator(){
   kN.classList.toggle('pos',netTotal>=0); kN.classList.toggle('neg',netTotal<0);
 
   donutChart&&donutChart.destroy();
-  donutChart=new Chart(document.getElementById('donut'),{
-    type:'doughnut',
-    data:{labels,datasets:[{data:unitCounts,backgroundColor:labels.map((_,i)=>soft(i)),borderColor:'#fff',borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
-      plugins:{legend:{position:'bottom',labels:{color:'#12333A',font:{weight:'bold'}}},
-               tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} ห้อง`}}}}
-  });
+  donutChart = new Chart(document.getElementById('donut'), {
+  type: 'doughnut',
+  data: { labels, datasets: [...] },
+  options: {
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#12333A', // ตัวหนังสือ legend เข้ม
+          font: { weight: 'bold' }
+        }
+      }
+    }
+  }
+});
 
   barVChart&&barVChart.destroy();
-  barVChart=new Chart(document.getElementById('barV'),{
-    type:'bar',
-    data:{labels,datasets:[{data:profits,backgroundColor:profits.map(v=>v>=0?'#2E7D5B':'#d44a54'),label:'Net P/L (บาท)'}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      scales:{
-        y:{beginAtZero:true,grid:{color:'rgba(18,51,58,.12)'},ticks:{color:'#12333A',callback:v=>'฿'+fmt(v)}},
-        x:{grid:{display:false},ticks:{color:'#12333A'}}
+ barVChart = new Chart(document.getElementById('barV'), {
+  type: 'bar',
+  data: { labels, datasets: [...] },
+  options: {
+    scales: {
+      y: {
+        ticks: { color: '#12333A' }, // ตัวเลขแกน Y
+        grid: { color: 'rgba(18,51,58,0.12)' }
       },
-      plugins:{legend:{display:false}}
+      x: {
+        ticks: { color: '#12333A' } // ตัวเลขแกน X
+      }
+    },
+    plugins: {
+      legend: {
+        labels: { color: '#12333A' }
+      }
     }
-  });
+  }
+});
 
   renderRange(document.getElementById('benchMarket'),{title:'ช่วงราคาตลาด (ยูนิตใกล้เคียง)',unit:'บาท/เดือน',min:18000,max:20000,actual:19000});
   renderRange(document.getElementById('benchOwner'), {title:'ช่วงแนะนำ (Developer)',unit:'บาท/เดือน',min:18500,max:20500,actual:19800});
@@ -332,36 +349,6 @@ document.querySelector('[data-action="get-started"]')?.addEventListener('click',
 applyLens(localStorage.getItem('pd_lens')||'tenant');
 </script>
 </body>
-  /* ==== Override Renovator Dark Theme → Light Theme ==== */
-#renovatorDash .reno-wrap {
-  background: #fff !important;
-  color: #12333A !important;
-}
-#renovatorDash .reno-card,
-#renovatorDash .kpiD {
-  background: #fff !important;
-  border: 1.5px solid #E5EFE9 !important;
-}
-#renovatorDash .reno-title {
-  color: #12333A !important;
-}
-#renovatorDash .kpiD .lab {
-  color: #4B5B5F !important;
-}
-#renovatorDash .kpiD .val {
-  color: #12333A !important;
-}
-#renovatorDash .badge-green {
-  background: #BFE3D2 !important;
-  color: #1F6F63 !important;
-}
-#renovatorDash .range-title {
-  color: #12333A !important;
-}
-#renovatorDash .range-labels span,
-#renovatorDash .range-note {
-  color: #4B5B5F !important;
-}
 </html>
 
 
